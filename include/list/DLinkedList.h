@@ -414,23 +414,36 @@
      return current;
  }
  
- template <class T>
- T DLinkedList<T>::removeAt(int index)
- {
-     // TODO
-     if(index < 0 || index >= this->count){
-         throw std::out_of_range("Index is out of range");
-     }
-     Node* delNode = getPreviousNodeOf(index)->next;
-     T removedData = delNode->data;
- 
-     delNode->prev->next = delNode->next;
-     delNode->next->prev = delNode->prev;
-     delete delNode;
-     count --;
-     return removedData;
- 
- }
+template <class T>
+T DLinkedList<T>::removeAt(int index) {
+    if (index < 0 || index >= this->count) {
+        throw std::out_of_range("Index is out of range");
+    }
+    if (count == 0) {
+        throw std::logic_error("List is empty");
+    }
+
+    Node* delNode = getPreviousNodeOf(index)->next;
+    T removedData = delNode->data;
+
+    // Trường hợp xóa nút đầu
+    if (delNode == head) {
+        head = delNode->next;
+        if (head) head->prev = nullptr;
+    }
+    // Trường hợp xóa nút cuối
+    if (delNode == tail) {
+        tail = delNode->prev;
+        if (tail) tail->next = nullptr;
+    }
+    // Cập nhật liên kết
+    if (delNode->prev) delNode->prev->next = delNode->next;
+    if (delNode->next) delNode->next->prev = delNode->prev;
+
+    delete delNode;
+    count--;
+    return removedData;
+}
  
  template <class T>
  bool DLinkedList<T>::empty()

@@ -482,17 +482,18 @@ void InventoryManager::addProduct(const List1D<InventoryAttribute> &attributes, 
     quantities.add(quantity);
     
 }
-void InventoryManager::removeProduct(int index)
-{
-    // TODO
-   // Sử dụng removeAt thay vì remove
-   if(index < 0 || index >= size()){
-    throw out_of_range("Index is out of range");
-}
-productNames.remove(index);
-quantities.remove(index);
-attributesMatrix.removeRow(index);
-// size()--; // Removed as it is unnecessary
+void InventoryManager::removeProduct(int index) {
+    if (index < 0 || index >= size()) {
+        throw out_of_range("Index is out of range in removeProduct");
+    }
+    try {
+        productNames.remove(index);
+        quantities.remove(index);
+        attributesMatrix.removeRow(index);
+    } catch (const out_of_range& e) {
+        cerr << "Error in removeProduct: " << e.what() << endl;
+        throw; // Ném lại để báo lỗi
+    }
 }
 
 List1D<string> InventoryManager::query(string attributeName, const double &minValue,
@@ -558,31 +559,26 @@ List1D<string> InventoryManager::query(string attributeName, const double &minVa
         
         return result;
    
+
 }
 
-void InventoryManager::removeDuplicates()
-{
-    // TODO
-    /* for (int i = 0; i < size(); i++) {
-        for (int j = i + 1; j < size(); ) {
-            if (areAttributesEqual(getProductAttributes(i), getProductAttributes(j))) {
-                quantities.set(i, quantities.get(i) + quantities.get(j));
-                removeProduct(j); // Xóa và giảm size()
-                // KHÔNG tăng j ở đây vì danh sách đã thay đổi
-            } else {
-                j++; // Chỉ tăng nếu không xóa
-            }
-        }
-    } */
 
+void InventoryManager::removeDuplicates() {
     for (int i = 0; i < size(); i++) {
-        for (int j = i + 1; j < size(); ) {
-            if (getProductAttributes(i) == getProductAttributes(j)) {
-                quantities.set(i, quantities.get(i) + quantities.get(j));
-                removeProduct(j); // Xóa và giảm size()
-                // KHÔNG tăng j ở đây vì danh sách đã thay đổi
-            } else {
-                j++; // Chỉ tăng nếu không xóa
+        int currentSize = size(); // Lưu kích thước tại thời điểm này
+        for (int j = i + 1; j < currentSize; ) {
+            try {
+                if (getProductAttributes(i) == getProductAttributes(j)) {
+                    int newQuantity = getProductQuantity(i) + getProductQuantity(j);
+                    updateQuantity(i, newQuantity);
+                    removeProduct(j);
+                    currentSize--; // Giảm kích thước sau khi xóa
+                } else {
+                    j++;
+                }
+            } catch (const out_of_range& e) {
+                cerr << "Error in removeDuplicates: " << e.what() << endl;
+                break;
             }
         }
     }

@@ -302,20 +302,24 @@
  }
  
  template <class T>
- T XArrayList<T>::removeAt(int index)
- {
-     // TODO
-     if(index < 0 || index >= count){
-         throw std::out_of_range("Index is out of range");
-     }
-     T removedData = data[index];
-     for(int i= index;i<count-1;i++){
-         data[i] = data[i+1];
-     }
-     count--;
-     return removedData;
- 
- }
+T XArrayList<T>::removeAt(int index) {
+    if (index < 0 || index >= count) {
+        throw std::out_of_range("Index is out of range");
+    }
+    if (data == nullptr) {
+        throw std::logic_error("Array is null");
+    }
+    if (count > capacity) {
+        throw std::logic_error("Count exceeds capacity");
+    }
+
+    T removedData = data[index];
+    for (int i = index; i < count - 1; i++) {
+        data[i] = data[i + 1];
+    }
+    count--;
+    return removedData;
+}
  
  template <class T>
  bool XArrayList<T>::removeItem(T item, void (*removeItemData)(T))
