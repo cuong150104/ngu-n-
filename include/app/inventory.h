@@ -585,7 +585,7 @@ void InventoryManager::removeDuplicates() {
             }
         }
     }
-      cout << "\nAfter removing duplicates: " << temp << endl;
+    //   cout << "\nAfter removing duplicates: " << temp << endl;s
 }
 
 InventoryManager InventoryManager::merge(const InventoryManager &inv1,
