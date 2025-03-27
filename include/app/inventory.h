@@ -33,6 +33,15 @@ public:
     template <typename U>
     friend ostream &operator<<(ostream &os, const List1D<T> &list);
     void remove(int index);
+    void removeAt(int index);
+
+    bool operator==(const List1D<T>& other) const {
+        if (this->size() != other.size()) return false;
+        for (int i = 0; i < this->size(); i++) {
+            if (this->get(i) != other.get(i)) return false;
+        }
+        return true;
+    }
 };
 
 // -------------------- List2D --------------------
@@ -40,7 +49,8 @@ template <typename T>
 class List2D
 {
 private:
-    IList<IList<T> *> *pMatrix;
+    // IList<IList<T> *> *pMatrix;
+      DLinkedList<List1D<T>*>* pMatrix;
 
 public:
     List2D();
@@ -77,6 +87,8 @@ struct InventoryAttribute
     bool operator!=(const InventoryAttribute& other) const {
         return !(*this == other);
     }
+    
+
 };
 
 // -------------------- InventoryManager --------------------
@@ -126,6 +138,19 @@ public:
         }
         return *this;
     }
+
+  /*   bool areAttributesEqual(
+        const List1D<InventoryAttribute>& attr1,
+        const List1D<InventoryAttribute>& attr2
+    ) const {
+        if (attr1.size() != attr2.size()) return false;
+        for (int i = 0; i < attr1.size(); i++) {
+            if (attr1.get(i) != attr2.get(i)) { // Đảm bảo operator!= được định nghĩa
+                return false;
+            }
+        }
+        return true;
+    } */
 };
 
 // -------------------- List1D Method Definitions --------------------
@@ -190,8 +215,11 @@ template <typename T>
 void List1D<T>::set(int index, T value)
 {
     // TODO
-    pList->set(index, value);
+   /*  pList->set(index, value); */
+   T& element = pList->get(index);  // Giả sử get() trả về tham chiếu
+   element = value;          
 }
+
 
 template <typename T>
 void List1D<T>::add(const T &value)
@@ -227,13 +255,21 @@ ostream &operator<<(ostream &os, const List1D<T> &list)
 template <typename T>
 void List1D<T>::remove(int index)
 {
-    // TODO
-    if(index < 0 || index >= pList->size()){
+    if(index < 0 || index >= size()){
         throw out_of_range("Index is out of range");
     }
     pList->removeAt(index);
 }
 
+template <typename T>
+void List1D<T>::removeAt(int index)
+{
+    // TODO
+    if(index < 0 || index >= pList->size()){
+        throw out_of_range("Index is out of range");
+    }
+    pList->removeAt(index); // Use the removeAt method of pList to handle the removal
+}
 
 // -------------------- List2D Method Definitions --------------------
 template <typename T>
@@ -241,14 +277,16 @@ List2D<T>::List2D()
 {
     // TODO
     // pMatrix = new DLinkedList<IList<InventoryAttribute>*>();
-    pMatrix = new DLinkedList<List1D<T>*>();  // Khởi tạo đúng kiểu với DLinkedList
+
+    pMatrix = new DLinkedList<List1D<T>*>();  
+    
 
 }
 
 template <typename T>
 List2D<T>::List2D(List1D<T> *array, int num_rows): List2D()
 {
-    // TODO
+    // Thêm các dòng vào pMatrix
     for (int i = 0; i < num_rows; i++) {
         List1D<T>* row = new List1D<T>(array[i]);
         pMatrix->add(row);
@@ -256,15 +294,17 @@ List2D<T>::List2D(List1D<T> *array, int num_rows): List2D()
 }
 
 template <typename T>
-List2D<T>::List2D(const List2D<T>& other): List2D()
-{
-    // TODO
-    pMatrix = new DLinkedList<List1D<T>*>();  // Khởi tạo đúng kiểu
+List2D<T>::List2D(const List2D<T>& other): List2D() {
+    // Đảm bảo pMatrix sử dụng đúng kiểu con trỏ với DLinkedList
+    pMatrix = new DLinkedList<List1D<T>*>();  // DLinkedList với kiểu con trỏ List1D<T>*
+
     for (int i = 0; i < other.rows(); i++) {
-        List1D<T>* newRow = new List1D<T>(other.getRow(i));
-        pMatrix->add(newRow);
+        // Lấy dòng từ other.getRow(i) và khởi tạo List1D mới
+        List1D<T>* newRow = new List1D<T>(other.getRow(i));  // Lấy hàng và sao chép vào List1D
+        pMatrix->add(newRow);  // Thêm dòng vào pMatrix
     }
 }
+
 
 template <typename T>
 List2D<T>::~List2D()
@@ -301,7 +341,7 @@ T List2D<T>::get(int rowIndex, int colIndex) const
     if (rowIndex < 0 || rowIndex >= rows()) {
         throw out_of_range("Row index out of range");
     }
-    IList<T>* row = pMatrix->get(rowIndex);
+    List1D<T>* row = pMatrix->get(rowIndex);  // Không cần ép kiểu
     return row->get(colIndex);
 }
 
@@ -311,7 +351,7 @@ List1D<T> List2D<T>::getRow(int rowIndex) const {
     if (rowIndex < 0 || rowIndex >= rows()) {
         throw out_of_range("Row index out of range");
     }
-
+    List1D<T>* row = pMatrix->get(rowIndex);  // Không cần ép kiểu
     // Trả về bản sao của List1D<T> thay vì con trỏ
     return *pMatrix->get(rowIndex);  // Lấy dòng từ pMatrix và trả về một bản sao
 }
@@ -335,9 +375,8 @@ string List2D<T>::toString() const
 template <typename T>
 void List2D<T>::addRow(const List1D<T> &row)
 {
-    pMatrix->add(new List1D<T>(row));
+    pMatrix->add(new List1D<T>(row));  // Thêm dòng mới vào pMatrix
 }
-
 template <typename T>
 
 ostream &operator<<(ostream &os, const List2D<T> &matrix)
@@ -347,17 +386,16 @@ ostream &operator<<(ostream &os, const List2D<T> &matrix)
     return os;
 }
 
-template <typename T>  
+template <typename T>
 void List2D<T>::removeRow(int index)
 {
-    // TODO
     if(index < 0 || index >= pMatrix->size()){
         throw out_of_range("Index is out of range");
     }
-    delete pMatrix->get(index);
-    pMatrix->removeAt(index);
+    delete pMatrix->get(index);  // Xóa dòng trước khi loại bỏ
+    pMatrix->removeAt(index);  // Loại bỏ dòng khỏi pMatrix 
+   
 }
-
 template <typename T>
 void List2D<T>::add(List1D<T>* row) {
     // Đảm bảo pMatrix là một danh sách chứa con trỏ kiểu List1D<T>*
@@ -424,18 +462,25 @@ void InventoryManager::updateQuantity(int index, int newQuantity)
     }
     quantities.set(index, newQuantity);
 }
-
 void InventoryManager::addProduct(const List1D<InventoryAttribute> &attributes, const string &name, int quantity)
 {
-    // TODO
-    List1D<InventoryAttribute> newRow(attributes);
+   /*  List1D<InventoryAttribute> newRow(attributes);
     
     // Thêm vào ma trận (sử dụng phương thức add đúng cách)
-    attributesMatrix.add(&newRow);
+    attributesMatrix.add(&newRow);  // Đảm bảo kiểu phù hợp với DLinkedList<List1D<InventoryAttribute>*>
     
-    // Thêm thông tin sản phẩm
+    // Thêm tên sản phẩm và số lượng vào các danh sách tương ứng
+    productNames.add(name);
+    quantities.add(quantity); */
+    List1D<InventoryAttribute>* newRow = new List1D<InventoryAttribute>(attributes);
+    
+    // Thêm con trỏ vào ma trận
+    attributesMatrix.add(newRow);
+    
+    // Thêm tên và số lượng
     productNames.add(name);
     quantities.add(quantity);
+    
 }
 void InventoryManager::removeProduct(int index)
 {
@@ -447,6 +492,7 @@ void InventoryManager::removeProduct(int index)
 productNames.remove(index);
 quantities.remove(index);
 attributesMatrix.removeRow(index);
+// size()--; // Removed as it is unnecessary
 }
 
 List1D<string> InventoryManager::query(string attributeName, const double &minValue,
@@ -517,16 +563,26 @@ List1D<string> InventoryManager::query(string attributeName, const double &minVa
 void InventoryManager::removeDuplicates()
 {
     // TODO
+    /* for (int i = 0; i < size(); i++) {
+        for (int j = i + 1; j < size(); ) {
+            if (areAttributesEqual(getProductAttributes(i), getProductAttributes(j))) {
+                quantities.set(i, quantities.get(i) + quantities.get(j));
+                removeProduct(j); // Xóa và giảm size()
+                // KHÔNG tăng j ở đây vì danh sách đã thay đổi
+            } else {
+                j++; // Chỉ tăng nếu không xóa
+            }
+        }
+    } */
+
     for (int i = 0; i < size(); i++) {
         for (int j = i + 1; j < size(); ) {
-            if (productNames.get(i) == productNames.get(j) && 
-                attributesMatrix.getRow(i).toString() == attributesMatrix.getRow(j).toString()) {
-                // Merge quantities
+            if (getProductAttributes(i) == getProductAttributes(j)) {
                 quantities.set(i, quantities.get(i) + quantities.get(j));
-                // Remove duplicate
-                removeProduct(j);
+                removeProduct(j); // Xóa và giảm size()
+                // KHÔNG tăng j ở đây vì danh sách đã thay đổi
             } else {
-                j++;
+                j++; // Chỉ tăng nếu không xóa
             }
         }
     }
@@ -535,7 +591,6 @@ void InventoryManager::removeDuplicates()
 InventoryManager InventoryManager::merge(const InventoryManager &inv1,
                                          const InventoryManager &inv2)
 {
-    // TODO
     InventoryManager result = inv1;
     for (int i = 0; i < inv2.size(); i++) {
         result.addProduct(inv2.getProductAttributes(i),
@@ -588,12 +643,14 @@ string InventoryManager::toString() const
     // TODO
     stringstream ss;
     ss << "InventoryManager[\n";
-    ss << "AttributesMatrix: " << attributesMatrix << ",\n";
-    ss << "ProductNames: " << productNames << ",\n";
-    ss << "Quantities: " << quantities << "\n";
+    ss << "  AttributesMatrix: " << attributesMatrix << ",\n";
+    ss << "  ProductNames: " << productNames << ",\n";
+    ss << "  Quantities: " << quantities << "\n";
     ss << "]";
     return ss.str();
 }
+
+
 
 
 

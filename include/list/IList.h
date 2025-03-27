@@ -101,6 +101,11 @@ public:
      *          that can convert the item (passed to that function) to a string
      */
     virtual string  toString(string (*item2str)(T&)=0 )=0;
+
+   /*  
+    virtual void set(int index, T value) = 0; */
+  
+
 };
 #endif /* ILIST_H */
 
