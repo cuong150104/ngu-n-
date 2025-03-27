@@ -564,6 +564,7 @@ List1D<string> InventoryManager::query(string attributeName, const double &minVa
 
 
 void InventoryManager::removeDuplicates() {
+    int temp =0;
     for (int i = 0; i < size(); i++) {
         int currentSize = size(); // Lưu kích thước tại thời điểm này
         for (int j = i + 1; j < currentSize; ) {
@@ -575,13 +576,16 @@ void InventoryManager::removeDuplicates() {
                     currentSize--; // Giảm kích thước sau khi xóa
                 } else {
                     j++;
+                  temp=j;
                 }
+               
             } catch (const out_of_range& e) {
                 cerr << "Error in removeDuplicates: " << e.what() << endl;
                 break;
             }
         }
     }
+      cout << "\nAfter removing duplicates: " << temp << endl;
 }
 
 InventoryManager InventoryManager::merge(const InventoryManager &inv1,

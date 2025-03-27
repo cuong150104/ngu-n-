@@ -164,6 +164,5 @@ void tc_inventory1006(){
     cout << "\nAfter adding duplicate of Product A:" << endl;
     cout << inventory.toString() << endl;
     inventory.removeDuplicates();
-    cout << "\nAfter removing duplicates:" << endl;
     cout << inventory.toString() << endl;
 }
